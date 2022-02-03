@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using ProjectBase.Res;
 using Scripts.ProjectBase.Base;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Scripts.ProjectBase.Pool
 {
@@ -10,20 +12,21 @@ namespace Scripts.ProjectBase.Pool
 
         private GameObject _poolObj;
 
-        public GameObject GetObj(string name)
+        public void GetObj(string name, UnityAction<GameObject> callback)
         {
             GameObject obj = null;
             if (poolDic.ContainsKey(name) && poolDic[name].poolList.Count > 0)
             {
-                obj = poolDic[name].GetObj();
+                callback(poolDic[name].GetObj());
             }
             else
             {
-                obj = GameObject.Instantiate(Resources.Load<GameObject>(name));
-                obj.name = name;
+                ResMgr.GetInstance().LoadAsync<GameObject>(name, (obj =>
+                {
+                    obj.name = name;
+                    callback(obj);
+                }));
             }
-
-            return obj;
         }
 
         public void PushObj(string name, GameObject obj)
